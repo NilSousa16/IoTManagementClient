@@ -26,22 +26,22 @@ http://www.springframework.org/schema/osgi http://www.springframework.org/schema
 
 	<!-- <bean id="customerSvc" class=" org.apache.servicemix.examples.cxf.jaxrs.CustomerService"/> -->
 
-	<jaxrs:server id="gatewayService" address="/gtw">
-		<jaxrs:serviceBeans>
-			<ref bean="gatewaySvc" />
-		</jaxrs:serviceBeans>
-	</jaxrs:server>
+<!-- 	<jaxrs:server id="gatewayService" address="/gtw"> -->
+<!-- 		<jaxrs:serviceBeans> -->
+<!-- 			<ref bean="gatewaySvc" /> -->
+<!-- 		</jaxrs:serviceBeans> -->
+<!-- 	</jaxrs:server> -->
 
-	<bean id="gatewaySvc"
-		class="org.apache.servicemix.examples.cxf.service.GatewayService" />
+<!-- 	<bean id="gatewaySvc" -->
+<!-- 		class="org.apache.servicemix.examples.cxf.service.GatewayService" /> -->
 
-	<jaxrs:server id="serviceService" address="/svc">
-		<jaxrs:serviceBeans>
-			<ref bean="serviceSvc" />
-		</jaxrs:serviceBeans>
-	</jaxrs:server>
+<!-- 	<jaxrs:server id="serviceService" address="/svc"> -->
+<!-- 		<jaxrs:serviceBeans> -->
+<!-- 			<ref bean="serviceSvc" /> -->
+<!-- 		</jaxrs:serviceBeans> -->
+<!-- 	</jaxrs:server> -->
 
-	<bean id="serviceSvc"
-		class="org.apache.servicemix.examples.cxf.service.ServiceService" />
+<!-- 	<bean id="serviceSvc" -->
+<!-- 		class="org.apache.servicemix.examples.cxf.service.ServiceService" /> -->
 
 </beans>

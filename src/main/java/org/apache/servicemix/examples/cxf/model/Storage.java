@@ -2,21 +2,37 @@ package org.apache.servicemix.examples.cxf.model;
 
 //import com.github.cb372.metrics.sigar.FilesystemMetrics.FSType;
 
+/**
+ * Class representing a gateway storage component.
+ *
+ * @author Nilson Rodrigues Sousa
+ */
 public class Storage {
 
-	private String deviceName;
+	/* Describes the device name */
+	private String name;
+	
+	/* Describes the mount point */
 	private String mountPoint;
-	//private FSType genericFSType;
+
+	/* Not implemented */
+	// private FSType genericFSType;
+	
+	/* Type of storage device */
 	private String osSpecificFSType;
+	
+	/* Describes the total space in KB */
 	private long totalSizeKB;
+	
+	/* Describes the total amount of free space in KB */
 	private long freeSpaceKB;
 
-	public String getDeviceName() {
-		return deviceName;
+	public String getName() {
+		return name;
 	}
 
-	public void setDeviceName(String deviceName) {
-		this.deviceName = deviceName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getMountPoint() {
@@ -27,13 +43,13 @@ public class Storage {
 		this.mountPoint = mountPoint;
 	}
 
-//	public FSType getGenericFSType() {
-//		return genericFSType;
-//	}
-//
-//	public void setGenericFSType(FSType genericFSType) {
-//		this.genericFSType = genericFSType;
-//	}
+	// public FSType getGenericFSType() {
+	// return genericFSType;
+	// }
+	//
+	// public void setGenericFSType(FSType genericFSType) {
+	// this.genericFSType = genericFSType;
+	// }
 
 	public String getOsSpecificFSType() {
 		return osSpecificFSType;

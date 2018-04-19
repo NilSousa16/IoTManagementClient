@@ -10,33 +10,140 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
 	xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 
 	http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
 
 	<!-- This bundle makes use of Karaf commands to demonstrate core persistence 
 		operations. Feel free to remove it. -->
-		
-	<reference id="bundleContext" interface="org.osgi.framework.BundleContext">
-	</reference>	
-		
-	<bean id="service_monitor" class="org.apache.servicemix.examples.cxf.info.ServiceInfo"
-		init-method="listNames">
-		<property name="bundleContext" ref="bundleContext" />	
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>INSTANCES<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+	<reference id="bundle_service" interface="org.apache.karaf.bundle.core.BundleService">
+	</reference>
+
+	<!-- <reference id="bundleContext" interface="org.osgi.framework.BundleContext"> -->
+	<!-- </reference> -->
+
+	<!-- <reference id="session" interface="org.apache.karaf.shell.api.console.Session"> -->
+	<!-- </reference> -->
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>INTERFACES<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+	<service ref="bundler_info"
+		interface="org.apache.servicemix.examples.cxf.interfaces.BundlerInfoInterface" />
+
+	<!-- <service ref="service_info" -->
+	<!-- interface="org.apache.servicemix.examples.cxf.interfaces.ServiceInfoInterface" 
+		/> -->
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>BEANS<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+	<bean id="bundler_info" class="org.apache.servicemix.examples.cxf.info.BundlerInfo">
+		<property name="bundleService" ref="bundle_service" />
 	</bean>
 
-<!-- 	<command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0"> -->
-<!-- 		<command> -->
-<!-- 			<action class="org.apache.servicemix.examples.cxf.info.ServiceInfo" /> -->
-<!-- 		</command> -->
-<!-- 	</command-bundle> -->
-	
-<!-- 	<camelContext id="camel" -->
-<!-- 		xmlns="http://camel.apache.org/schema/blueprint"> -->
-		
-<!-- 		<route> -->
-<!-- 			<from uri="timer://myTimer?period=10000" /> -->
-<!-- 			<to uri="bean:service_monitor?method=listNames" /> -->
-<!-- 		</route>		 -->
-<!-- 	</camelContext> -->
+	<!-- <bean id="service_info" class="org.apache.servicemix.examples.cxf.info.ServiceInfo"> -->
+	<!-- </bean> -->
+
+	<bean id="control_send_bundler_information"
+		class="org.apache.servicemix.examples.cxf.send.ControlSendBundlerInformation">
+		<!-- init-method="compareInfoBundler"> -->
+
+		<property name="bundlerInfo" ref="bundler_info" />
+	</bean>
+
+	<bean id="control_send_gateway_information"
+		class="org.apache.servicemix.examples.cxf.send.ControlSendGatewayInformation">
+		<!-- init-method="compareInfoGateway"> -->
+	</bean>
+
+	<bean id="control_send_gateway_status_information"
+		class="org.apache.servicemix.examples.cxf.send.ControlSendGatewayStatusInformation">
+		<!-- init-method="compareInfoGatewayStatus"> -->
+	</bean>
+
+	<bean id="control_send_service_information"
+		class="org.apache.servicemix.examples.cxf.send.ControlSendServiceInformation">
+	</bean>
+
+	<bean id="recover" class="org.apache.servicemix.examples.cxf.intervention.Recover">
+		<!-- init-method="restoreConfiguration"> -->
+		<!-- <property name="session" ref="session" /> -->
+		<!-- <property name="bundleService" ref="bundle_service" /> -->
+		<!-- <property name="bundleContext" ref="bundleContext" /> -->
+	</bean>
+
+
+	<!-- <bean id="service_info" class="org.apache.servicemix.examples.cxf.info.ServiceInfo" -->
+	<!-- init-method="test"> -->
+	<!-- </bean> -->
+
+	<!-- <bean id="demo_rest_client" class="org.apache.servicemix.examples.cxf.test.DemoRestClient"> -->
+	<!-- </bean> -->
+
+	<bean id="gatewaySvc"
+		class="org.apache.servicemix.examples.cxf.service.GatewayService" />
+
+	<bean id="file_generation"
+		class="org.apache.servicemix.examples.cxf.experiment.FileGeneration" />
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>>JAX-RS<<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+	<jaxrs:server id="gatewayService" address="/gtw">
+		<jaxrs:serviceBeans>
+			<ref component-id="gatewaySvc" />
+		</jaxrs:serviceBeans>
+	</jaxrs:server>
+
+	<jaxrs:server id="recover_method" address="/recover">
+		<jaxrs:serviceBeans>
+			<ref component-id="recover" />
+		</jaxrs:serviceBeans>
+	</jaxrs:server>
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>COMMANDS<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+
+
+	<!-- >>>>>>>>>>>>>>>>>>>>>>>>>>>>ROUTECAMEL<<<<<<<<<<<<<<<<<<<<<<<< -->
+
+	<camelContext id="camel"
+		xmlns="http://camel.apache.org/schema/blueprint">
+
+		<!-- generation log mem-proc -->
+		<!-- <route> -->
+		<!-- <from uri="timer://myTimer?period=20000" /> -->
+		<!-- <to uri="bean:file_generation?method=generationLogMemProcessor" /> -->
+		<!-- </route> -->
+
+		<route>
+			<from uri="timer://myTimer?period=13000" />
+			<to uri="bean:control_send_bundler_information?method=compareInfoBundler" />
+		</route>
+
+		<route>
+			<from uri="timer://myTimer?period=16000" />
+			<to
+				uri="bean:control_send_gateway_status_information?method=compareInfoGatewayStatus" />
+		</route>
+
+		<!-- <route> -->
+		<!-- <from uri="timer://myTimer?period=17000" /> -->
+		<!-- <to uri="bean:control_send_service_information?method=compareInfoService" 
+			/> -->
+		<!-- </route> -->
+
+		<route>
+			<from uri="timer://myTimer?period=10000" />
+			<to uri="bean:control_send_gateway_information?method=compareInfoGateway" />
+		</route>
+
+		<!-- <route> -->
+		<!-- <from uri="timer://myTimer?period=" /> --> <!-- 19000 -->
+		<!-- <to uri="bean:control_send_device_information?method=compareInfoDevice" 
+			/> -->
+		<!-- </route> -->
+
+	</camelContext>
 </blueprint>

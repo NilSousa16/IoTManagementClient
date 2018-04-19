@@ -1,341 +1,200 @@
 package org.apache.servicemix.examples.cxf.info;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
+import java.util.Random;
 
+import org.apache.servicemix.examples.cxf.model.Bundler;
 import org.apache.servicemix.examples.cxf.model.CPU;
 import org.apache.servicemix.examples.cxf.model.Service;
-import org.apache.servicemix.examples.cxf.model.Storage;
-import org.hyperic.jni.ArchNotSupportedException;
-import org.hyperic.sigar.CpuInfo;
-import org.hyperic.sigar.CpuPerc;
-import org.hyperic.sigar.Mem;
-import org.hyperic.sigar.NetInterfaceConfig;
-import org.hyperic.sigar.OperatingSystem;
-import org.hyperic.sigar.Sigar;
-import org.hyperic.sigar.SigarException;
-import org.hyperic.sigar.SigarLoader;
+import org.apache.servicemix.examples.cxf.util.InfraUtil;
 
-import com.github.cb372.metrics.sigar.FilesystemMetrics.FileSystem;
-import com.github.cb372.metrics.sigar.SigarMetrics;
-
-import kamon.sigar.SigarProvisioner;
-
+/**
+ * Class responsible capture information about the gateway
+ *
+ * @author Nilson Rodrigues Sousa
+ */
 public class GatewayInfo {
 
-	private final Sigar sigar;
-
-	// This constructor could be the cause of the error in libsigar-amd64-linux.so in java.library.path
-	// Possible solution will be to put the SigarProvisioner.provision () within the classes that use the sigar variable
+	// This constructor could be the cause of the error in
+	// libsigar-amd64-linux.so in java.library.path
+	// Possible solution will be to put the SigarProvisioner.provision () within
+	// the classes that use the sigar variable
 	public GatewayInfo() {
-		try {
-			//final File location = new File("target/lib");
-			final File location = new File("src/main/resources/META-INF/lib");	
-			SigarProvisioner.provision(location);
-			System.out.println("Configuration successfully completed!");
-		} catch (Exception e) {
-			System.out.println("Error in providing the SIGAR library.");
-			e.printStackTrace();
-		}
-		
-		sigar = new Sigar();
-		
+
 	}
 
-	// description of OS in use
+	/**
+	 * Method that returns the OS description used
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - OS used
+	 */
 	public String getDescription() {
-		OperatingSystem sys = OperatingSystem.getInstance();
-		return sys.getDescription();
+		return "Debian_Light";
 	}
 
-	// to be defined
+	/**
+	 * Method that returns the model description
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - model description
+	 */
 	public String getModel() {
-		return null;
+		return "0.11.2";
 	}
 
-	// to be defined
+	/**
+	 * Method that returns the manufacturer's description
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - manufacturer description
+	 */
 	public String getManufacturer() {
-		return null;
+		return "Raspberry";
 	}
 
-	// to be defined
+	/**
+	 * Method that returns the firmware description
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - firmware description
+	 */
 	public String getFirmware() {
-		return null;
-	}
-	
-	// on-off used server side opportunistically
-	public boolean isStatus() {
-		// possible functionality is to use the method to return error status.
-		return false;
-	}
-	
-	// returns the list of components in existing stores
-	public List<Storage> getStorage() {
-		SigarMetrics sm = SigarMetrics.getInstance();
-
-		List<FileSystem> list = sm.filesystems().filesystems();
-		List<Storage> listSim = new ArrayList<Storage>();
-		Storage sim;
-
-		for (FileSystem fs : list) {
-			String path = fs.mountPoint().toString();
-			if (path.length() < 6) {
-				path += "zzzzzzzz";
-			}
-
-			// considerando que todo disco válido estará no caminho /media/ ou
-			// terá FSType == LocalDisk
-			if (path.substring(0, 7).equalsIgnoreCase("/media/") || fs.genericFSType().toString().equals("LocalDisk")) {
-				sim = new Storage();
-
-				sim.setDeviceName(fs.deviceName());
-				sim.setFreeSpaceKB(fs.freeSpaceKB());
-				sim.setTotalSizeKB(fs.totalSizeKB());
-				sim.setMountPoint(fs.mountPoint());
-				sim.setOsSpecificFSType(fs.osSpecificFSType());
-				//sim.setGenericFSType(fs.genericFSType());
-
-				listSim.add(sim);
-			}
-		}
-		return listSim;
-	}
-	// method for the server side, but the client can register its actualization if possible
-	public String getLastUpdate() {
-		return this.getDateHour();
-	}
-	
-	// returns the battery level in percent
-	// if it is not possible to use the command will be returned -1
-	public int baterryLevel() {
-		Map<String, String> result;
-		String reportBattery;
-		int ind = 0;
-
-		//Search for some power source (battery)
-		while (true) {
-			result = commandTerminal("upower -i /org/freedesktop/UPower/devices/battery_BAT" + ind);
-			reportBattery = result.toString();
-			int position = reportBattery.indexOf("native-path");
-			String line = reportBattery.substring(position, position + 30);
-			if (line.indexOf("null") == -1) {
-				break;
-			} else {
-				ind++;
-			}
-			if (ind == 15) {
-				return -1;
-			}
-		}
-		// captures the position of the initial character of the substring
-		int position = reportBattery.indexOf("percentage");
-		// returns the line of the substring
-		String line = reportBattery.substring(position, position + 27);
-		// captures the position of the initial character of the substring
-		int pos = line.indexOf("%");
-		return Integer.parseInt(line.substring(pos - 3, pos).trim());
+		return "2.1.0";
 	}
 
-	// returns the total of memory
-	public long getTotalMemory() {
-		try {
-			Mem mem = this.sigar.getMem();
-			return mem.getTotal();
-		} catch (SigarException e) {
-			System.out.println("Failed to capture the total memory value.");
-			e.printStackTrace();
-			return 0;
-		}
-	}	
-	
-	// returns the total of used memory
-	public long getUsedMemory() {
-		try {
-			Mem mem = this.sigar.getMem();
-			return mem.getUsed();
-		} catch (SigarException e) {
-			System.out.println("Failed to capture the memory value used.");
-			e.printStackTrace();
-			return 0;
-		}
+	/**
+	 * Method that returns the storage capacity. (Originally it would return the
+	 * existing storage components with their respective characteristics)
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return long - storage capacity
+	 */
+	public long getStorage() {
+		// List<Storage> listSim = new ArrayList<Storage>();
+		//
+		// Storage storage;
+		//
+		// for (int i = 0; i < 3; i++) {
+		// storage = new Storage();
+		//
+		// storage.setDeviceName("/dev/sda1");
+		// storage.setFreeSpaceKB(3 * 100 * 12 * 5 * i);
+		// storage.setTotalSizeKB(288237920);
+		// storage.setMountPoint("/");
+		// storage.setOsSpecificFSType("ext4");
+		//
+		// listSim.add(storage);
+		// }
+		// return listSim;
+
+		return new Random().nextInt(19700621);
 	}
 
-	// returns the total of free memory
-	public long getFreeMemory() {
-		try {
-			Mem mem = this.sigar.getMem();
-			return mem.getFree();
-		} catch (SigarException e) {
-			System.out.println("Failed to capture free memory value.");
-			e.printStackTrace();
-			return 0;
-		}
+	/**
+	 * Method that returns the time of the last update
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return Calendar - latest update time
+	 */
+	public Calendar getLastUpdate() {
+		return Calendar.getInstance();
 	}
 
-	// returns the percentage value of the processor's capacity used
-	public double getUsedProcessor() {
-		try {
-			CpuPerc cpu = this.sigar.getCpuPerc();
-			return (cpu.getCombined() * 100);
-		} catch (SigarException e) {
-			System.out.println("Failure to capture the percentage of processor usage.");
-			e.printStackTrace();
-			return 0;
-		}
-	}
-
-	// returns the percentage value of the free processor capacity
-	public double getFreeProcessor() {
-		try {
-			CpuPerc cpu = this.sigar.getCpuPerc();
-			return 100 - (cpu.getCombined() * 100);
-		} catch (SigarException e) {
-			System.out.println("Failure to capture the free processor percentage.");
-			e.printStackTrace();
-			return 0;
-		}
-	}
-
-	// returns information about CPU characteristics
+	/**
+	 * Method that returns the CPU characteristics of the gateways. NOT USED
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - CPU features
+	 */
 	public List<CPU> getCPU() {
-		CPU cim;
-		CpuInfo[] cpuInfoList = null;
+		CPU cpu;
 		List<CPU> listCPUInfoModel = new ArrayList<CPU>();
-		try {
-			cpuInfoList = sigar.getCpuInfoList();
 
-			for (CpuInfo info : cpuInfoList) {
-				cim = new CPU();
+		for (int i = 0; i < 3; i++) {
+			cpu = new CPU();
 
-				cim.setVendor(info.getVendor());
-				cim.setClock(info.getMhz());
-				cim.setTotalCores(info.getTotalCores());
-				cim.setModel(info.getModel());
+			cpu.setVendor("Intel");
+			cpu.setClock(i + 1);
+			cpu.setTotalCores(i + 1);
+			cpu.setModel("Intel 4004");
 
-				listCPUInfoModel.add(cim);
-			}
-			return listCPUInfoModel;
-		} catch (SigarException e) {
-			System.out.println("Failed to capture CPU information.");
-			e.printStackTrace();
-			return null;
+			listCPUInfoModel.add(cpu);
 		}
+
+		return listCPUInfoModel;
 	}
 
-	// returns the mac address
+	/**
+	 * Method that returns the gateway MAC
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - address mac
+	 */
 	public String getMac() {
-		try {
-			NetInterfaceConfig config = this.sigar.getNetInterfaceConfig(null);
-			return config.getHwaddr();
-		} catch (SigarException e) {
-			System.out.println("Mac address capture failed.");
-			e.printStackTrace();
-			return "";
-		}
+		return InfraUtil.getMacAddress();
 	}
-	
-	// returns the ip address
+
+	/**
+	 * Method that returns the gateway IP
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - address ip
+	 */
 	public String getIp() {
-		try {
-			NetInterfaceConfig config = this.sigar.getNetInterfaceConfig(null);
-			return config.getAddress();
-		} catch (SigarException e) {
-			System.out.println("Failed to capture the IP address.");
-			e.printStackTrace();
-			return "";
-		}
+		return InfraUtil.getIpMachine();
 	}
 
-	// returns the hostname
+	/**
+	 * Method that returns the hostname
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - hostname
+	 */
 	public String getHostName() {
-		try {
-			org.hyperic.sigar.NetInfo info = this.sigar.getNetInfo();
-			return info.getHostName();
-		} catch (SigarException e) {
-			System.out.println("Failure to capture the HostName.");
-			e.printStackTrace();
-			return "";
-		}
+		return "RaspberryHostName";
 	}
 
-	// returns the location
+	/**
+	 * Method that returns the location
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - location
+	 */
 	public String getLocation() {
-		// Will return a fake location
-		return null;
+		return "-12.9990189,-38.5140298";
 	}
 
-	// will return a fake location
+	/**
+	 * Method that returns the list of gateway bundles
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return List<Bundler> - bundle list
+	 */
+	public List<Bundler> getListBundler() {
+		return BundlerInfo.listBundler;
+	}
+
+	/**
+	 * Method that returns the list of gateway service
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return List<Service> - service list
+	 */
 	public List<Service> getService() {
-		// not implemented
-		return null;
+		return ServiceInfo.listService;
 	}
 
-	// returns a list with the existing network interfaces
-	// untested method may then display errors	
+	/**
+	 * Method that returns the list of existing network interfaces. NOT USED.
+	 * 
+	 * @author Nilson Rodrigues Sousa
+	 * @return String - list interface network
+	 */
 	public String[] getIntefaceNetwork() {
-		try {
-			String[] interf = this.sigar.getNetInterfaceList();
-			return interf;
-		} catch (SigarException e) {
-			System.out.println("Failed to capture the network interface.");
-			e.printStackTrace();
-		}
 		return null;
 	}
 
-	// >>>>>>>>>>AUXILIARY METHODS<<<<<<<<<<
-
-	// returns date and time
-	public String getDateHour() {
-		String data = "dd/MM/yyyy";
-		String hora = "h:mm - a";
-		String data1, hora1;
-		java.util.Date agora = new java.util.Date();
-		;
-		SimpleDateFormat formata = new SimpleDateFormat(data);
-		data1 = formata.format(agora);
-		formata = new SimpleDateFormat(hora);
-		hora1 = formata.format(agora);
-		return data1 + " " + hora1;
-	}
-
-	// method to run linux command
-	private static Map<String, String> commandTerminal(String stringCommand) {
-		Runtime run = Runtime.getRuntime();
-		Process proc = null;
-		Map<String, String> result = new HashMap<String, String>();
-		try {
-			String command = stringCommand;
-			proc = run.exec(command);
-			result.put("input", inputStreamToString(proc.getInputStream()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	// auxiliary method for the commandTerminal
-	private static String inputStreamToString(InputStream isr) {
-		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(isr));
-			StringBuilder sb = new StringBuilder();
-			String s = null;
-			while ((s = br.readLine()) != null) {
-				sb.append(s + "\n");
-			}
-			return sb.toString();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-	}
 }

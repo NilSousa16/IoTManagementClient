@@ -26,8 +26,23 @@
 	<name>Apache ServiceMix :: Examples :: CXF JAX-RS OSGI</name>
 	<description>CXF Example using JAX-RS</description>
 
+	<properties>
+		<jersey.version>1.19</jersey.version>
+	</properties>
+
 	<dependencies>
 		<!-- Dependency for information on services -->
+
+		<!--<dependency> <groupId>org.apache.aries.blueprint</groupId> <artifactId>org.apache.aries.blueprint.api</artifactId> 
+			</dependency> <dependency> <groupId>org.osgi</groupId> <artifactId>org.osgi.compendium</artifactId> 
+			</dependency> <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.apache.felix.utils</artifactId> 
+			<scope>provided</scope> </dependency> -->
+
+
+
+
+
+
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
@@ -42,13 +57,17 @@
 		<dependency>
 			<groupId>org.apache.karaf.shell</groupId>
 			<artifactId>org.apache.karaf.shell.core</artifactId>
-			<optional>true</optional>
 		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.karaf.shell</groupId> -->
+		<!-- <artifactId>org.apache.karaf.shell.console</artifactId> -->
+		<!-- </dependency> -->
 
 		<dependency>
 			<groupId>org.apache.karaf.shell</groupId>
 			<artifactId>org.apache.karaf.shell.console</artifactId>
-<!-- 			<version>2.3.0</version> -->
+			<version>2.3.0</version>
 		</dependency>
 
 		<!-- Dependency for information on services -->
@@ -57,6 +76,7 @@
 			<groupId>org.apache.servicemix.specs</groupId>
 			<artifactId>org.apache.servicemix.specs.jsr339-api-2.0</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.servicemix.specs</groupId>
 			<artifactId>org.apache.servicemix.specs.jaxb-api-${jaxb.api.version}</artifactId>
@@ -87,9 +107,63 @@
 			<artifactId>metrics-sigar</artifactId>
 			<version>0.2.2</version>
 		</dependency>
-		
-		<!-- dependency for services -->
-		
+
+		<!-- https://mvnrepository.com/artifact/org.apache.karaf.bundle/org.apache.karaf.bundle.core -->
+		<dependency>
+			<groupId>org.apache.karaf.bundle</groupId>
+			<artifactId>org.apache.karaf.bundle.core</artifactId>
+			<version>4.0.8</version>
+		</dependency>
+
+		<!-- Dependency for jersey -->
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-servlet</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-json</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+
+		<!-- Jersey -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.jersey</groupId> -->
+		<!-- <artifactId>jersey-core</artifactId> -->
+		<!-- <version>1.12</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.jersey</groupId> -->
+		<!-- <artifactId>jersey-server</artifactId> -->
+		<!-- <version>1.12</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>com.sun.jersey</groupId> -->
+		<!-- <artifactId>jersey-json</artifactId> -->
+		<!-- <version>1.12</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>javax.ws.rs</groupId> -->
+		<!-- <artifactId>jsr311-api</artifactId> -->
+		<!-- <version>1.1.1</version> -->
+		<!-- </dependency> -->
+
+		<!-- Gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.0</version>
+		</dependency>
+		<!-- Gson -->
 
 	</dependencies>
 
@@ -111,11 +185,18 @@
 							org.springframework.beans.factory.config,
 							org.apache.commons.httpclient,
 							org.apache.commons.httpclient.methods,
+							org.apache.karaf.shell.commands,
 							org.apache.felix.service.command,
 							org.apache.felix.gogo.commands,
 							org.apache.karaf.shell.console,
-							org.apache.karaf.shell.commands
+							
+
+							<!-- org.osgi.framework.*, INSERT IN 8/1/18 -->
+							<!-- com.sun.jersey.api.client, -->
+							*
 						</Import-Package>
+
+
 						<Export-Package>
 							org.apache.servicemix.examples.cxf.jaxrs
 						</Export-Package>
